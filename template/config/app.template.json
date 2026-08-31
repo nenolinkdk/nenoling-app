@@ -1,0 +1,16 @@
+{
+  "templateVersion": "1.0",
+  "applicationId": "dk.nenolink.learnXXYY",
+  "appName": "Learn XX-YY",
+  "versionName": "0.1.0",
+  "releaseDate": "YYYY-MM-DD",
+  "brand": {
+    "name": "Nenoling",
+    "publisher": "Nenolink",
+    "copyright": "© Nenolink · Henrik Nielsen",
+    "website": "https://example.invalid"
+  },
+  "languagePack": "xx-yy",
+  "offlineFirst": true,
+  "externalResourcesOpenInBrowser": true
+}

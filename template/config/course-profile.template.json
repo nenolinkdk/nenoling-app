@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "courseId": "course.xx-yy",
+  "support": {"language": "xx", "locale": "xx-XX", "label": "Support"},
+  "target": {"language": "yy", "locale": "yy-YY", "label": "Target"},
+  "tts": {"primaryRole": "target", "supportEnabled": true, "targetEnabled": true},
+  "modules": [
+    {"id": "module.level-1", "type": "level", "level": 1, "enabled": true},
+    {"id": "module.level-2", "type": "level", "level": 2, "enabled": true},
+    {"id": "module.level-3", "type": "level", "level": 3, "enabled": true},
+    {"id": "module.children", "type": "children", "audience": "children", "enabled": true},
+    {"id": "module.grammar", "type": "grammar", "enabled": true}
+  ],
+  "standardLesson": {"items": 10, "quizQuestions": 3},
+  "resources": {"enabled": true, "separateFromLinguisticItems": true}
+}

@@ -1,0 +1,10 @@
+{
+  "id": "xx-yy",
+  "contentVersion": "0.1.0",
+  "supportLanguage": {"code": "xx", "name": "Support language", "locale": "xx-XX"},
+  "targetLanguage": {"code": "yy", "name": "Target language", "locale": "yy-YY"},
+  "speech": {"primaryRole": "target", "supportLocale": "xx-XX", "targetLocale": "yy-YY"},
+  "course": {"id": "course.xx-yy", "titleSupport": "Course title", "titleTarget": "Course title"},
+  "modules": ["module.level-1", "module.level-2", "module.level-3", "module.children", "module.grammar"],
+  "footer": {"copyright": "© Nenolink · Henrik Nielsen", "website": "https://example.invalid"}
+}
