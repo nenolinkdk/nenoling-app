@@ -32,6 +32,7 @@ public final class NenolingQuizView {
     }
 
     public View buildQuestion(QuizSession session, Actions actions) {
+        if (session == null) throw new IllegalArgumentException("quiz session required");
         LinearLayout root = column();
         Button back = button(config.ui.back, theme.panel, theme.primaryDark);
         back.setOnClickListener(v -> actions.back());
@@ -40,10 +41,11 @@ public final class NenolingQuizView {
         Question question = session.question();
         root.addView(centered(ShellText.questionPosition(config.ui,
                 session.questionNumber(), session.totalQuestions()), 12, theme.muted, false), matchWrap(6));
-        root.addView(panelText(question.prompt.support + "\n" + question.prompt.target, theme.panel), matchWrap(6));
+        root.addView(panelText(pair(question.prompt), theme.panel), matchWrap(6));
 
         for (Answer answer : session.displayedAnswers()) {
-            Button option = button(question.displayedAnswerText(answer), theme.primary, theme.primaryDark);
+            if (answer == null) continue;
+            Button option = button(answerText(question, answer), theme.primary, theme.primaryDark);
             option.setOnClickListener(v -> actions.answer(answer));
             root.addView(option, matchWrap(8));
         }
@@ -51,20 +53,37 @@ public final class NenolingQuizView {
     }
 
     public View buildFeedback(QuizSession session, boolean correct, Actions actions) {
+        if (session == null) throw new IllegalArgumentException("quiz session required");
         LinearLayout root = column();
         Button back = button(config.ui.back, theme.panel, theme.primaryDark);
         back.setOnClickListener(v -> actions.back());
         root.addView(back, wrap(0));
         root.addView(centered(correct ? "✓" : "×", 24,
                 correct ? theme.primaryDark : theme.accent, true), matchWrap(8));
-        root.addView(panelText(session.question().explanation.support + "\n"
-                + session.question().explanation.target,
+        root.addView(panelText(pair(session.question().explanation),
                 correct ? theme.primary : theme.panel), matchWrap(6));
         Button next = button(config.ui.next, theme.primary, theme.primaryDark);
         next.setOnClickListener(v -> actions.next());
         root.addView(next, matchWrap(8));
         return root;
     }
+
+    private String answerText(Question question, Answer answer) {
+        if (question == null || answer.text == null) return "";
+        if ("support".equals(question.answerDisplayRole)) return safe(answer.text.support);
+        return safe(answer.text.target);
+    }
+
+    private String pair(dk.nenolink.nenoling.content.ContentModels.TextPair pair) {
+        if (pair == null) return "";
+        String support = safe(pair.support);
+        String target = safe(pair.target);
+        if (support.isEmpty()) return target;
+        if (target.isEmpty()) return support;
+        return support + "\n" + target;
+    }
+
+    private String safe(String value) { return value == null ? "" : value; }
 
     private LinearLayout column() {
         LinearLayout view = new LinearLayout(context);
@@ -94,7 +113,7 @@ public final class NenolingQuizView {
 
     private Button button(String label, int background, int textColor) {
         Button button = new Button(context);
-        button.setText(label);
+        button.setText(label == null ? "" : label);
         button.setTextSize(14);
         button.setTextColor(textColor);
         button.setAllCaps(false);
