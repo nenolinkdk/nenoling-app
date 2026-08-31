@@ -46,6 +46,17 @@ public final class NenolingLessonView {
     public View build(Item item, int index, int total, boolean complete,
                       boolean previousEnabled, String supportLocale, String targetLocale,
                       Actions actions) {
+        return build(item, index, total, complete, previousEnabled, false,
+                supportLocale, targetLocale, actions);
+    }
+
+    /**
+     * Builds one lesson item. On the final item, hasQuiz makes the transition to the
+     * lesson quiz explicit instead of relying only on the arrow's content description.
+     */
+    public View build(Item item, int index, int total, boolean complete,
+                      boolean previousEnabled, boolean hasQuiz,
+                      String supportLocale, String targetLocale, Actions actions) {
         LinearLayout root = column();
         root.addView(centered(ShellText.itemPosition(config.ui, index + 1, total), 12, theme.muted, false));
         if (!item.speaker.isEmpty()) root.addView(centered(item.speaker, 12, theme.muted, false));
@@ -59,12 +70,21 @@ public final class NenolingLessonView {
         supportText.setPadding(dp(8), dp(4), dp(8), dp(2));
         root.addView(supportText, matchWrap(4));
 
+        boolean finalItem = index + 1 >= total;
         RoundNavBar nav = new RoundNavBar(context, theme.primary, theme.panel, theme.primaryDark, theme.muted);
-        nav.bind(previousEnabled, true, config.ui.previous, config.ui.next, new RoundNavBar.Actions() {
-            @Override public void onPrevious() { actions.previous(); }
-            @Override public void onNext() { actions.next(); }
-        });
+        nav.bind(previousEnabled, true, config.ui.previous,
+                finalItem && hasQuiz ? config.ui.openQuiz : config.ui.next,
+                new RoundNavBar.Actions() {
+                    @Override public void onPrevious() { actions.previous(); }
+                    @Override public void onNext() { actions.next(); }
+                });
         root.addView(nav, matchWrap(8));
+
+        if (finalItem && hasQuiz) {
+            Button quiz = button(config.ui.openQuiz, theme.accent, theme.onAccent);
+            quiz.setOnClickListener(v -> actions.next());
+            root.addView(quiz, matchWrap(8));
+        }
 
         LinearLayout tts = new LinearLayout(context);
         tts.setGravity(Gravity.CENTER);
