@@ -2,33 +2,32 @@
 
 ## Gate 1 — engine build
 
-Current priority. GitHub Actions workflow `.github/workflows/engine-ci.yml` compiles the extracted Android library and runs its unit tests.
+**Passed at reusable-code level on 2026-08-31.** The CI run after Gradle alignment passed both the engine unit-test step and `:engine:assembleDebug`.
 
-Pass criteria:
-
-- `:engine:testDebugUnitTest` passes;
-- `:engine:assembleDebug` passes;
-- no language-pair-specific constants are introduced to make the build green.
-
-If CI fails, repair the generic engine and document material changes in `ENGINE_EXTRACTION.md`.
+Gate 1 acceptance remains protected by `.github/workflows/engine-ci.yml`; future engine changes must keep these steps green.
 
 ## Gate 2 — generic app shell
 
-Only after Gate 1 is green, extract reusable presentation from Learn-FR-DA. The shell must receive strings, locale labels, branding and resource presentation through product configuration/data rather than French/Danish conditions.
+**In progress.** First shell extraction now lives in `template/android/app-shell` and depends on `:engine`.
 
-Candidate shell responsibilities:
+Extracted so far:
 
-- home/module/lesson navigation;
-- compact support/target panels;
-- TTS controls;
-- round previous/next navigation;
-- final-item-to-quiz transition;
-- quiz screen and feedback;
-- progress presentation;
-- optional resource presentation;
-- generic footer slots.
+- product/UI string configuration (`ShellConfig`);
+- standard data-driven module ordering (`ModuleOrder`);
+- reusable navigation state (`ShellState`);
+- quiz presentation/session lifecycle (`QuizSession`), including one shuffle per presented question and identity-based scoring;
+- generic progress/item/question text formatting (`ShellText`).
 
-Do not move French wording, Danish wording, transport-specific copy or product branding into the shell.
+Next Gate 2 increment: move the reusable Android View construction from Learn-FR-DA `MainActivity` into the shell. It must consume `ShellConfig` for all labels/branding and engine course locales for TTS. FR/DA strings, note labels and transport-specific presentation must not be copied as constants.
+
+Gate 2 pass criteria:
+
+- app-shell unit tests pass;
+- `:app-shell:assembleDebug` passes;
+- home/module/lesson/item/quiz/resource rendering can be hosted by a product without language-name conditions;
+- support/target TTS buttons derive language labels/locales from product configuration/data;
+- footer/branding is configured by product;
+- final-item navigation opens quiz and answer order remains stable after rendering/feedback.
 
 ## Gate 3 — reference product integration
 

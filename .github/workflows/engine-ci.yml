@@ -1,4 +1,4 @@
-name: Nenoling engine CI
+name: Nenoling engine and shell CI
 
 on:
   push:
@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  engine:
+  reusable-android:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -39,3 +39,9 @@ jobs:
 
       - name: Assemble engine
         run: gradle :engine:assembleDebug --stacktrace
+
+      - name: Run app-shell unit tests
+        run: gradle :app-shell:testDebugUnitTest --stacktrace
+
+      - name: Assemble app shell
+        run: gradle :app-shell:assembleDebug --stacktrace

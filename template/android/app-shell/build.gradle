@@ -1,0 +1,26 @@
+plugins {
+    id "com.android.library"
+}
+
+android {
+    namespace "dk.nenolink.nenoling.shell"
+    compileSdk 35
+
+    defaultConfig {
+        minSdk 23
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+}
+
+dependencies {
+    implementation project(":engine")
+    testImplementation "junit:junit:4.13.2"
+}
