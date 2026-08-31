@@ -120,8 +120,9 @@ public final class ShellCoordinator {
         String itemProgressId = progress.progressId(course.id, module.id, lesson.id, item.id);
         progress.saveLastPosition(itemProgressId);
         boolean complete = progress.isItemComplete(itemProgressId);
+        boolean hasQuiz = lesson.quiz != null && !lesson.quiz.questions.isEmpty();
         NenolingLessonView view = new NenolingLessonView(context, config, theme, noteLabels, speech, speechListener);
-        host.show(view.build(item, index, lesson.items.size(), complete, index > 0,
+        host.show(view.build(item, index, lesson.items.size(), complete, index > 0, hasQuiz,
                 course.supportLanguage.locale, course.targetLanguage.locale,
                 new NenolingLessonView.Actions() {
                     @Override public void previous() { if (index > 0) renderItem(index - 1); }
