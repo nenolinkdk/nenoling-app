@@ -1,7 +1,6 @@
 package dk.nenolink.nenoling.shell;
 
 import android.content.Context;
-import android.view.View;
 
 import java.util.Collections;
 import java.util.List;
@@ -17,10 +16,7 @@ import dk.nenolink.nenoling.content.ResourceModels.ResourceCollection;
 import dk.nenolink.nenoling.progress.ProgressStore;
 import dk.nenolink.nenoling.speech.SpeechController;
 
-/**
- * Reusable navigation/controller layer between product host, engine data and shell views.
- * Product-specific Activities should only load data/configuration and delegate here.
- */
+/** Reusable controller between product host, engine data and shell views. */
 public final class ShellCoordinator {
     private final Context context;
     private final ShellHost host;
@@ -63,31 +59,20 @@ public final class ShellCoordinator {
 
     public ShellState state() { return state; }
 
-    public void start() {
-        state.modules();
-        renderModules();
-    }
+    public void start() { state.modules(); renderModules(); }
 
     public boolean back() {
         switch (state.screen) {
-            case MODULES:
-                return false;
+            case MODULES: return false;
             case LESSONS:
-            case RESOURCES:
-                start();
-                return true;
+            case RESOURCES: start(); return true;
             case LESSON:
             case ITEM:
             case QUIZ:
             case QUIZ_RESULT:
-                if (module != null) {
-                    openModule(module);
-                    return true;
-                }
-                start();
-                return true;
-            default:
-                return false;
+                if (module != null) { openModule(module); return true; }
+                start(); return true;
+            default: return false;
         }
     }
 
@@ -116,17 +101,25 @@ public final class ShellCoordinator {
     private void openLesson(Lesson selected) {
         lesson = selected;
         state.lesson(module.id, selected.id);
-        int saved = progress.getLastPosition(course.id, module.id, selected.id);
-        int index = selected.items.isEmpty() ? 0 : Math.min(Math.max(saved, 0), selected.items.size() - 1);
-        renderItem(index);
+        renderItem(restoredItemIndex(selected));
+    }
+
+    private int restoredItemIndex(Lesson selected) {
+        String saved = progress.getLastPosition();
+        if (saved == null || saved.isEmpty()) return 0;
+        for (int i = 0; i < selected.items.size(); i++) {
+            if (progress.progressId(course.id, module.id, selected.id, selected.items.get(i).id).equals(saved)) return i;
+        }
+        return 0;
     }
 
     private void renderItem(int index) {
         if (lesson == null || lesson.items.isEmpty()) return;
         state.item(index);
-        progress.saveLastPosition(course.id, module.id, lesson.id, index);
         Item item = lesson.items.get(index);
-        boolean complete = progress.isCompleted(course.id, module.id, lesson.id, item.id);
+        String itemProgressId = progress.progressId(course.id, module.id, lesson.id, item.id);
+        progress.saveLastPosition(itemProgressId);
+        boolean complete = progress.isItemComplete(itemProgressId);
         NenolingLessonView view = new NenolingLessonView(context, config, theme, noteLabels, speech, speechListener);
         host.show(view.build(item, index, lesson.items.size(), complete, index > 0,
                 course.supportLanguage.locale, course.targetLanguage.locale,
@@ -136,19 +129,13 @@ public final class ShellCoordinator {
                         if (index + 1 < lesson.items.size()) renderItem(index + 1);
                         else openQuiz();
                     }
-                    @Override public void markComplete() {
-                        progress.markCompleted(course.id, module.id, lesson.id, item.id);
-                        renderItem(index);
-                    }
+                    @Override public void markComplete() { progress.markItemComplete(itemProgressId); renderItem(index); }
                 }));
     }
 
     private void openQuiz() {
         Quiz quiz = lesson == null ? null : lesson.quiz;
-        if (quiz == null || quiz.questions.isEmpty()) {
-            openModule(module);
-            return;
-        }
+        if (quiz == null || quiz.questions.isEmpty()) { openModule(module); return; }
         state.quiz();
         quizSession = new QuizSession(quiz);
         renderQuizQuestion();
@@ -158,10 +145,7 @@ public final class ShellCoordinator {
         NenolingQuizView view = new NenolingQuizView(context, config, theme);
         host.show(view.buildQuestion(quizSession, new NenolingQuizView.Actions() {
             @Override public void back() { openModule(module); }
-            @Override public void answer(Answer answer) {
-                lastAnswerCorrect = quizSession.answer(answer);
-                renderQuizFeedback();
-            }
+            @Override public void answer(Answer answer) { lastAnswerCorrect = quizSession.answer(answer); renderQuizFeedback(); }
             @Override public void next() { }
         }));
     }
@@ -171,20 +155,16 @@ public final class ShellCoordinator {
         host.show(view.buildFeedback(quizSession, lastAnswerCorrect, new NenolingQuizView.Actions() {
             @Override public void back() { openModule(module); }
             @Override public void answer(Answer answer) { }
-            @Override public void next() {
-                if (quizSession.next()) renderQuizQuestion();
-                else finishQuiz();
-            }
+            @Override public void next() { if (quizSession.next()) renderQuizQuestion(); else finishQuiz(); }
         }));
     }
 
     private void finishQuiz() {
-        progress.saveQuizResult(course.id, module.id, lesson.id,
-                quizSession.score(), quizSession.totalQuestions());
+        String quizProgressId = progress.progressId(course.id, module.id, lesson.id, lesson.quiz.id);
+        progress.saveQuizResult(quizProgressId, quizSession.score(), quizSession.totalQuestions());
         state.screen = ShellState.Screen.QUIZ_RESULT;
         NenolingResultView result = new NenolingResultView(context, config, theme);
-        host.show(result.build(quizSession.score(), quizSession.totalQuestions(),
-                () -> openModule(module)));
+        host.show(result.build(quizSession.score(), quizSession.totalQuestions(), () -> openModule(module)));
     }
 
     private void renderResources() {
@@ -198,21 +178,15 @@ public final class ShellCoordinator {
     }
 
     private String lessonProgress(Lesson value) {
-        int completed = 0;
-        for (Item item : value.items) {
-            if (progress.isCompleted(course.id, module.id, value.id, item.id)) completed++;
-        }
-        return "\n" + ShellText.progress(completed, value.items.size());
+        return "\n" + ShellText.progress(progress.countCompleted(course.id, module.id, value.id), value.items.size());
     }
 
     private String moduleProgress(Module value) {
         int completed = 0;
         int total = 0;
         for (Lesson current : value.lessons) {
-            for (Item item : current.items) {
-                total++;
-                if (progress.isCompleted(course.id, value.id, current.id, item.id)) completed++;
-            }
+            completed += progress.countCompleted(course.id, value.id, current.id);
+            total += current.items.size();
         }
         return total == 0 ? "" : "\n" + ShellText.progress(completed, total);
     }
