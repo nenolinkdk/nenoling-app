@@ -50,14 +50,14 @@ public final class NenolingLessonView {
         root.addView(centered(ShellText.itemPosition(config.ui, index + 1, total), 12, theme.muted, false));
         if (!item.speaker.isEmpty()) root.addView(centered(item.speaker, 12, theme.muted, false));
 
-        TextView targetText = centered(item.text.target, 22, theme.text, true);
-        targetText.setPadding(dp(12), dp(10), dp(12), dp(10));
-        targetText.setBackground(panel(theme.panel));
-        root.addView(targetText, matchWrap(8));
+        TextView target = centered(item.text.target, 22, theme.text, true);
+        target.setPadding(dp(12), dp(10), dp(12), dp(10));
+        target.setBackground(panel(theme.panel));
+        root.addView(target, matchWrap(8));
 
-        TextView supportText = centered(item.text.support, 15, theme.muted, false);
-        supportText.setPadding(dp(8), dp(4), dp(8), dp(2));
-        root.addView(supportText, matchWrap(4));
+        TextView support = centered(item.text.support, 15, theme.muted, false);
+        support.setPadding(dp(8), dp(4), dp(8), dp(2));
+        root.addView(support, matchWrap(4));
 
         RoundNavBar nav = new RoundNavBar(context, theme.primary, theme.panel, theme.primaryDark, theme.muted);
         nav.bind(previousEnabled, true, config.ui.previous, config.ui.next, new RoundNavBar.Actions() {
@@ -68,11 +68,11 @@ public final class NenolingLessonView {
 
         LinearLayout tts = new LinearLayout(context);
         tts.setGravity(Gravity.CENTER);
-        Button supportButton = button(config.ui.listenSupport, theme.primary, theme.primaryDark);
-        supportButton.setOnClickListener(v -> speech.speak(item.text.support, supportLocale, speechListener));
+        Button support = button(config.ui.listenSupport, theme.primary, theme.primaryDark);
+        support.setOnClickListener(v -> speech.speak(item.text.support, supportLocale, speechListener));
         Button targetButton = button(config.ui.listenTarget, theme.primary, theme.primaryDark);
         targetButton.setOnClickListener(v -> speech.speak(item.text.target, targetLocale, speechListener));
-        tts.addView(supportButton);
+        tts.addView(support);
         LinearLayout.LayoutParams targetParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         targetParams.leftMargin = dp(8);

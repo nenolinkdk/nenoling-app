@@ -2,37 +2,43 @@
 
 ## Gate 1 — engine build
 
-**Passed at reusable-code level on 2026-08-31.** The CI run after Gradle alignment passed both the engine unit-test step and `:engine:assembleDebug`.
-
-Gate 1 acceptance remains protected by `.github/workflows/engine-ci.yml`; future engine changes must keep these steps green.
+**Passed at reusable-code level on 2026-08-31.** Engine unit tests and `:engine:assembleDebug` passed in GitHub Actions using JDK 17 / Gradle 9.6.1.
 
 ## Gate 2 — generic app shell
 
-**In progress.** First shell extraction now lives in `template/android/app-shell` and depends on `:engine`.
+**In progress.** Reusable shell code now lives in `template/android/app-shell` and depends on `:engine`.
 
-Extracted so far:
+Extracted:
 
-- product/UI string configuration (`ShellConfig`);
-- standard data-driven module ordering (`ModuleOrder`);
-- reusable navigation state (`ShellState`);
-- quiz presentation/session lifecycle (`QuizSession`), including one shuffle per presented question and identity-based scoring;
-- generic progress/item/question text formatting (`ShellText`).
+- configurable UI/product strings (`ShellConfig`);
+- configurable palette (`ShellTheme`);
+- configurable note labels (`LessonNoteLabels`);
+- data-driven practical-resource placement (`ResourcePlacement`);
+- standard module order (`ModuleOrder`);
+- navigation state (`ShellState`);
+- stable quiz session (`QuizSession`);
+- progress/item/question formatting (`ShellText`);
+- module/home renderer (`NenolingModuleView`);
+- lesson-list renderer (`NenolingLessonListView`);
+- item renderer with two TTS roles, round navigation, completion and notes (`NenolingLessonView`);
+- quiz question/feedback renderer (`NenolingQuizView`).
 
-Next Gate 2 increment: move the reusable Android View construction from Learn-FR-DA `MainActivity` into the shell. It must consume `ShellConfig` for all labels/branding and engine course locales for TTS. FR/DA strings, note labels and transport-specific presentation must not be copied as constants.
+Next increment: add a reusable shell coordinator/controller that owns transitions between MODULES → LESSONS → LESSON → ITEM → QUIZ → QUIZ_RESULT and optional RESOURCES, and which delegates actual product metadata/version/footer concerns to a thin host Activity.
 
 Gate 2 pass criteria:
 
 - app-shell unit tests pass;
 - `:app-shell:assembleDebug` passes;
-- home/module/lesson/item/quiz/resource rendering can be hosted by a product without language-name conditions;
-- support/target TTS buttons derive language labels/locales from product configuration/data;
+- home/module/lesson/item/quiz/resource rendering can be hosted without language-name conditions;
+- support/target TTS labels/locales derive from product config/data;
 - footer/branding is configured by product;
-- final-item navigation opens quiz and answer order remains stable after rendering/feedback.
+- final-item navigation opens quiz;
+- answer order remains stable during feedback and scoring is identity-based.
 
 ## Gate 3 — reference product integration
 
-Use Learn-FR-DA as the first host of the reusable engine/shell without changing its linguistic content or expected user behaviour. This is the compatibility proof.
+Use Learn-FR-DA as the first host of the reusable engine/shell without changing linguistic content or expected user behaviour.
 
 ## Gate 4 — new language app
 
-Only after the reference product passes build + physical smoke testing against the reusable template. A new language app should then mostly consist of product configuration, branding and a validated language pack rather than copied engine code.
+Only after the reference product passes build + physical smoke testing against the reusable template.
