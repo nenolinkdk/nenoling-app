@@ -35,6 +35,7 @@ public final class ShellCoordinator {
     private Lesson lesson;
     private QuizSession quizSession;
     private boolean lastAnswerCorrect;
+    private boolean resourcesReturnToLesson;
 
     public ShellCoordinator(Context context, ShellHost host, ShellConfig config, ShellTheme theme,
                             LessonNoteLabels noteLabels, ResourcePlacement resourcePlacement,
@@ -64,12 +65,18 @@ public final class ShellCoordinator {
     public boolean back() {
         switch (state.screen) {
             case MODULES: return false;
-            case LESSONS:
-            case RESOURCES: start(); return true;
+            case LESSONS: start(); return true;
+            case RESOURCES:
+                if (resourcesReturnToLesson && lesson != null) renderLessonOverview();
+                else start();
+                return true;
             case LESSON:
+                if (module != null) { openModule(module); return true; }
+                start(); return true;
             case ITEM:
             case QUIZ:
             case QUIZ_RESULT:
+                if (lesson != null) { renderLessonOverview(); return true; }
                 if (module != null) { openModule(module); return true; }
                 start(); return true;
             default: return false;
@@ -82,7 +89,7 @@ public final class ShellCoordinator {
                 resourcePlacement.showOnModules && !resources.isEmpty(),
                 new NenolingModuleView.Actions() {
                     @Override public void open(Module selected) { openModule(selected); }
-                    @Override public void openResources() { renderResources(); }
+                    @Override public void openResources() { renderResources(false); }
                 }));
     }
 
@@ -100,8 +107,26 @@ public final class ShellCoordinator {
 
     private void openLesson(Lesson selected) {
         lesson = selected;
-        state.lesson(module.id, selected.id);
-        renderItem(restoredItemIndex(selected));
+        quizSession = null;
+        renderLessonOverview();
+    }
+
+    private void renderLessonOverview() {
+        if (lesson == null || module == null) return;
+        state.lesson(module.id, lesson.id);
+        String savedQuizResult = "";
+        if (lesson.quiz != null) {
+            savedQuizResult = progress.quizResult(progress.progressId(course.id, module.id, lesson.id, lesson.quiz.id));
+        }
+        NenolingLessonOverviewView view = new NenolingLessonOverviewView(context, config, theme);
+        host.show(view.build(lesson, lessonProgress(lesson), savedQuizResult,
+                !resources.isEmpty() && resourcePlacement.matches(lesson),
+                new NenolingLessonOverviewView.Actions() {
+                    @Override public void back() { openModule(module); }
+                    @Override public void startLesson() { renderItem(restoredItemIndex(lesson)); }
+                    @Override public void openQuiz() { openQuiz(); }
+                    @Override public void openResources() { renderResources(true); }
+                }));
     }
 
     private int restoredItemIndex(Lesson selected) {
@@ -128,7 +153,8 @@ public final class ShellCoordinator {
                     @Override public void previous() { if (index > 0) renderItem(index - 1); }
                     @Override public void next() {
                         if (index + 1 < lesson.items.size()) renderItem(index + 1);
-                        else openQuiz();
+                        else if (hasQuiz) openQuiz();
+                        else renderLessonOverview();
                     }
                     @Override public void markComplete() { progress.markItemComplete(itemProgressId); renderItem(index); }
                 }));
@@ -136,7 +162,7 @@ public final class ShellCoordinator {
 
     private void openQuiz() {
         Quiz quiz = lesson == null ? null : lesson.quiz;
-        if (quiz == null || quiz.questions.isEmpty()) { openModule(module); return; }
+        if (quiz == null || quiz.questions.isEmpty()) { renderLessonOverview(); return; }
         state.quiz();
         quizSession = new QuizSession(quiz);
         renderQuizQuestion();
@@ -145,7 +171,7 @@ public final class ShellCoordinator {
     private void renderQuizQuestion() {
         NenolingQuizView view = new NenolingQuizView(context, config, theme);
         host.show(view.buildQuestion(quizSession, new NenolingQuizView.Actions() {
-            @Override public void back() { openModule(module); }
+            @Override public void back() { renderLessonOverview(); }
             @Override public void answer(Answer answer) { lastAnswerCorrect = quizSession.answer(answer); renderQuizFeedback(); }
             @Override public void next() { }
         }));
@@ -154,7 +180,7 @@ public final class ShellCoordinator {
     private void renderQuizFeedback() {
         NenolingQuizView view = new NenolingQuizView(context, config, theme);
         host.show(view.buildFeedback(quizSession, lastAnswerCorrect, new NenolingQuizView.Actions() {
-            @Override public void back() { openModule(module); }
+            @Override public void back() { renderLessonOverview(); }
             @Override public void answer(Answer answer) { }
             @Override public void next() { if (quizSession.next()) renderQuizQuestion(); else finishQuiz(); }
         }));
@@ -165,13 +191,15 @@ public final class ShellCoordinator {
         progress.saveQuizResult(quizProgressId, quizSession.score(), quizSession.totalQuestions());
         state.screen = ShellState.Screen.QUIZ_RESULT;
         NenolingResultView result = new NenolingResultView(context, config, theme);
-        host.show(result.build(quizSession.score(), quizSession.totalQuestions(), () -> openModule(module)));
+        host.show(result.build(quizSession.score(), quizSession.totalQuestions(), this::renderLessonOverview));
     }
 
-    private void renderResources() {
+    private void renderResources(boolean returnToLesson) {
+        resourcesReturnToLesson = returnToLesson;
         state.screen = ShellState.Screen.RESOURCES;
         NenolingResourceView view = new NenolingResourceView(context, config, theme);
-        host.show(view.build(resources, this::openExternalResource, this::start));
+        host.show(view.build(resources, this::openExternalResource,
+                returnToLesson ? this::renderLessonOverview : this::start));
     }
 
     private void openExternalResource(ExternalResource resource) {
