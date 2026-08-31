@@ -2,43 +2,30 @@
 
 ## Gate 1 — engine build
 
-**Passed at reusable-code level on 2026-08-31.** Engine unit tests and `:engine:assembleDebug` passed in GitHub Actions using JDK 17 / Gradle 9.6.1.
+Passed. Engine unit tests and `:engine:assembleDebug` are protected by CI.
 
 ## Gate 2 — generic app shell
 
-**In progress.** Reusable shell code now lives in `template/android/app-shell` and depends on `:engine`.
+The reusable shell now contains module, lesson, item, quiz, result and resource renderers plus `ShellCoordinator`.
 
-Extracted:
-
-- configurable UI/product strings (`ShellConfig`);
-- configurable palette (`ShellTheme`);
-- configurable note labels (`LessonNoteLabels`);
-- data-driven practical-resource placement (`ResourcePlacement`);
-- standard module order (`ModuleOrder`);
-- navigation state (`ShellState`);
-- stable quiz session (`QuizSession`);
-- progress/item/question formatting (`ShellText`);
-- module/home renderer (`NenolingModuleView`);
-- lesson-list renderer (`NenolingLessonListView`);
-- item renderer with two TTS roles, round navigation, completion and notes (`NenolingLessonView`);
-- quiz question/feedback renderer (`NenolingQuizView`).
-
-Next increment: add a reusable shell coordinator/controller that owns transitions between MODULES → LESSONS → LESSON → ITEM → QUIZ → QUIZ_RESULT and optional RESOURCES, and which delegates actual product metadata/version/footer concerns to a thin host Activity.
+A synthetic Android product host has been added as the Gate 2 integration proof. It contains no Learn-FR-DA Activity code and supplies only a thin host, product configuration and synthetic language-pack JSON.
 
 Gate 2 pass criteria:
 
-- app-shell unit tests pass;
+- `:app-shell:testDebugUnitTest` passes;
 - `:app-shell:assembleDebug` passes;
-- home/module/lesson/item/quiz/resource rendering can be hosted without language-name conditions;
-- support/target TTS labels/locales derive from product config/data;
-- footer/branding is configured by product;
-- final-item navigation opens quiz;
-- answer order remains stable during feedback and scoring is identity-based.
+- `:test-host:assembleDebug` passes;
+- CI publishes `nenoling-synthetic-host-apk`;
+- synthetic host can navigate modules → lesson → items → quiz → result;
+- final item opens quiz;
+- support/target answer display remains isolated;
+- TTS locales come from the course data;
+- progress is stored by stable IDs.
 
 ## Gate 3 — reference product integration
 
-Use Learn-FR-DA as the first host of the reusable engine/shell without changing linguistic content or expected user behaviour.
+After Gate 2 is green, use Learn-FR-DA as the first real compatibility host without changing its linguistic content or expected user behaviour. This requires explicit authorization before modifying Learn-FR-DA.
 
-## Gate 4 — new language app
+## Gate 4 — product migration / new app
 
-Only after the reference product passes build + physical smoke testing against the reusable template.
+After reference compatibility, modernize LearnPortuguese2 or create a new language pair primarily from configuration, branding and a validated language pack rather than copied engine code.

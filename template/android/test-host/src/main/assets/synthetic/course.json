@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "synthetic-0.1",
+  "course": {
+    "id": "course.synthetic",
+    "courseLocale": "en-GB",
+    "languages": {
+      "support": {"language": "en", "locale": "en-GB"},
+      "target": {"language": "xx", "locale": "de-DE"}
+    },
+    "tts": {
+      "primaryRole": "target",
+      "targetLocale": "de-DE",
+      "supportLocale": "en-GB"
+    },
+    "title": {
+      "support": "Synthetic language course",
+      "target": "Synthetischer Sprachkurs"
+    },
+    "modules": [
+      {
+        "id": "module.level-1",
+        "type": "level",
+        "level": 1,
+        "audience": "test",
+        "title": {"support": "Level 1", "target": "Stufe 1"},
+        "tags": ["test"],
+        "lessons": [
+          {
+            "id": "lesson.synthetic.hello",
+            "moduleId": "module.level-1",
+            "order": 1,
+            "title": {"support": "A first exchange", "target": "Ein erster Austausch"},
+            "situation": {"support": "A minimal reusable lesson.", "target": "Eine minimale wiederverwendbare Lektion."},
+            "tags": ["test"],
+            "items": [
+              {
+                "id": "item.synthetic.hello",
+                "order": 1,
+                "type": "dialogue-turn",
+                "speaker": "A",
+                "text": {"support": "Hello!", "target": "Hallo!"},
+                "tts": {"role": "target", "locale": "de-DE", "enabled": true},
+                "notes": {
+                  "pronunciation": {"support": "Listen to the whole word.", "targetText": "Hallo"}
+                },
+                "tags": ["greeting"]
+              },
+              {
+                "id": "item.synthetic.thanks",
+                "order": 2,
+                "type": "phrase",
+                "speaker": "",
+                "text": {"support": "Thank you.", "target": "Danke."},
+                "tts": {"role": "target", "locale": "de-DE", "enabled": true},
+                "notes": {},
+                "tags": ["politeness"]
+              }
+            ],
+            "quiz": {
+              "id": "quiz.synthetic.hello",
+              "title": {"support": "Mini quiz", "target": "Miniquiz"},
+              "questions": [
+                {
+                  "id": "question.synthetic.hello",
+                  "order": 1,
+                  "type": "single-choice",
+                  "answerDisplayRole": "target",
+                  "prompt": {"support": "Choose Hello.", "target": "Wähle Hallo."},
+                  "answers": [
+                    {"id": "answer.synthetic.hello.correct", "text": {"support": "Hello", "target": "Hallo"}, "correct": true},
+                    {"id": "answer.synthetic.hello.wrong-1", "text": {"support": "Thanks", "target": "Danke"}, "correct": false},
+                    {"id": "answer.synthetic.hello.wrong-2", "text": {"support": "Goodbye", "target": "Tschüss"}, "correct": false}
+                  ],
+                  "explanation": {"support": "Hallo means Hello.", "target": "Hallo bedeutet Hello."},
+                  "tags": ["greeting"]
+                },
+                {
+                  "id": "question.synthetic.thanks",
+                  "order": 2,
+                  "type": "single-choice",
+                  "answerDisplayRole": "target",
+                  "prompt": {"support": "Choose Thank you.", "target": "Wähle Danke."},
+                  "answers": [
+                    {"id": "answer.synthetic.thanks.correct", "text": {"support": "Thank you", "target": "Danke"}, "correct": true},
+                    {"id": "answer.synthetic.thanks.wrong-1", "text": {"support": "Hello", "target": "Hallo"}, "correct": false},
+                    {"id": "answer.synthetic.thanks.wrong-2", "text": {"support": "Please", "target": "Bitte"}, "correct": false}
+                  ],
+                  "explanation": {"support": "Danke means Thank you.", "target": "Danke bedeutet Thank you."},
+                  "tags": ["politeness"]
+                },
+                {
+                  "id": "question.synthetic.support-role",
+                  "order": 3,
+                  "type": "single-choice",
+                  "answerDisplayRole": "support",
+                  "prompt": {"support": "What does Hallo mean?", "target": "Was bedeutet Hallo?"},
+                  "answers": [
+                    {"id": "answer.synthetic.support.correct", "text": {"support": "Hello", "target": "Hallo"}, "correct": true},
+                    {"id": "answer.synthetic.support.wrong-1", "text": {"support": "Thank you", "target": "Danke"}, "correct": false},
+                    {"id": "answer.synthetic.support.wrong-2", "text": {"support": "Goodbye", "target": "Tschüss"}, "correct": false}
+                  ],
+                  "explanation": {"support": "This checks support-role answer display.", "target": "Dies prüft die Support-Anzeige."},
+                  "tags": ["test"]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,4 +1,4 @@
-name: Nenoling engine and shell CI
+name: Nenoling reusable Android CI
 
 on:
   push:
@@ -45,3 +45,13 @@ jobs:
 
       - name: Assemble app shell
         run: gradle :app-shell:assembleDebug --stacktrace
+
+      - name: Assemble synthetic host APK
+        run: gradle :test-host:assembleDebug --stacktrace
+
+      - name: Upload synthetic host APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: nenoling-synthetic-host-apk
+          path: template/android/test-host/build/outputs/apk/debug/test-host-debug.apk
+          if-no-files-found: error
