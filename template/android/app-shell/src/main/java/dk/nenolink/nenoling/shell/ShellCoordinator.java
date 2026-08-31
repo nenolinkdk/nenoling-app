@@ -124,7 +124,7 @@ public final class ShellCoordinator {
                 new NenolingLessonOverviewView.Actions() {
                     @Override public void back() { openModule(module); }
                     @Override public void startLesson() { renderItem(restoredItemIndex(lesson)); }
-                    @Override public void openQuiz() { openQuiz(); }
+                    @Override public void openQuiz() { ShellCoordinator.this.openQuiz(); }
                     @Override public void openResources() { renderResources(true); }
                 }));
     }
@@ -153,7 +153,7 @@ public final class ShellCoordinator {
                     @Override public void previous() { if (index > 0) renderItem(index - 1); }
                     @Override public void next() {
                         if (index + 1 < lesson.items.size()) renderItem(index + 1);
-                        else if (hasQuiz) openQuiz();
+                        else if (hasQuiz) ShellCoordinator.this.openQuiz();
                         else renderLessonOverview();
                     }
                     @Override public void markComplete() { progress.markItemComplete(itemProgressId); renderItem(index); }
