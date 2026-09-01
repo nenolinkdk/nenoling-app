@@ -99,7 +99,7 @@ public final class NenolingModuleView {
         try {
             context.startActivity(intent);
         } catch (ActivityNotFoundException exception) {
-            Toast.makeText(context, "Link unavailable", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, config.ui.linkUnavailable, Toast.LENGTH_SHORT).show();
         }
     }
 
