@@ -189,14 +189,17 @@ public final class ShellCoordinator {
     private void finishQuiz() {
         String quizProgressId = progress.progressId(course.id, module.id, lesson.id, lesson.quiz.id);
         progress.saveQuizResult(quizProgressId, quizSession.score(), quizSession.totalQuestions());
-        state.screen = ShellState.Screen.QUIZ_RESULT;
+        state.quizResult();
         NenolingResultView result = new NenolingResultView(context, config, theme);
-        host.show(result.build(quizSession.score(), quizSession.totalQuestions(), this::renderLessonOverview));
+        host.show(result.build(quizSession.score(), quizSession.totalQuestions(), new NenolingResultView.Actions() {
+            @Override public void repeat() { openQuiz(); }
+            @Override public void back() { renderLessonOverview(); }
+        }));
     }
 
     private void renderResources(boolean returnToLesson) {
         resourcesReturnToLesson = returnToLesson;
-        state.screen = ShellState.Screen.RESOURCES;
+        state.resources();
         NenolingResourceView view = new NenolingResourceView(context, config, theme);
         host.show(view.build(resources, this::openExternalResource,
                 returnToLesson ? this::renderLessonOverview : this::start));
