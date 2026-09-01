@@ -36,6 +36,7 @@ public final class MainActivity extends Activity implements ShellHost, SpeechCon
             Course course = new ContentRepository(this, engine).loadProductionCourse();
             ShellConfig shell = new ShellConfig(
                     "Nenoling Synthetic Host",
+                    "A simple language-learning app for beginners, travellers and visitors.",
                     "%s · %s",
                     "Nenoling template",
                     "Nenoling",
