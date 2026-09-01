@@ -1,6 +1,7 @@
 package dk.nenolink.nenoling.shell;
 
 import android.content.Context;
+import android.widget.Toast;
 
 import java.util.Collections;
 import java.util.List;
@@ -206,7 +207,10 @@ public final class ShellCoordinator {
     }
 
     private void openExternalResource(ExternalResource resource) {
-        dk.nenolink.nenoling.ui.ExternalResourceLauncher.open(context, resource.url);
+        boolean opened = dk.nenolink.nenoling.ui.ExternalResourceLauncher.open(context, resource.url);
+        if (!opened && config.ui.linkUnavailable != null && !config.ui.linkUnavailable.trim().isEmpty()) {
+            Toast.makeText(context, config.ui.linkUnavailable, Toast.LENGTH_LONG).show();
+        }
     }
 
     private String lessonProgress(Lesson value) {
