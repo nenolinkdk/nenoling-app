@@ -3,20 +3,29 @@ package dk.nenolink.nenoling.shell;
 /** Product-supplied presentation strings and brand metadata. */
 public final class ShellConfig {
     public final String appName;
+    /** Short purpose/audience copy shown on the modules/front page only. */
+    public final String appIntro;
     public final String versionLinePattern;
     public final String footerCredit;
     public final String footerLinkLabel;
     public final String footerLinkUrl;
     public final UiText ui;
 
-    public ShellConfig(String appName, String versionLinePattern, String footerCredit,
+    public ShellConfig(String appName, String appIntro, String versionLinePattern, String footerCredit,
                        String footerLinkLabel, String footerLinkUrl, UiText ui) {
         this.appName = required(appName, "appName");
+        this.appIntro = appIntro == null ? "" : appIntro.trim();
         this.versionLinePattern = required(versionLinePattern, "versionLinePattern");
         this.footerCredit = required(footerCredit, "footerCredit");
         this.footerLinkLabel = required(footerLinkLabel, "footerLinkLabel");
         this.footerLinkUrl = footerLinkUrl == null ? "" : footerLinkUrl.trim();
         this.ui = ui == null ? UiText.defaults() : ui;
+    }
+
+    /** Backwards-compatible constructor for existing product hosts. */
+    public ShellConfig(String appName, String versionLinePattern, String footerCredit,
+                       String footerLinkLabel, String footerLinkUrl, UiText ui) {
+        this(appName, "", versionLinePattern, footerCredit, footerLinkLabel, footerLinkUrl, ui);
     }
 
     private static String required(String value, String field) {
