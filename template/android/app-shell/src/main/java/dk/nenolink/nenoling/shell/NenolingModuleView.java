@@ -1,14 +1,19 @@
 package dk.nenolink.nenoling.shell;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.List;
 
@@ -35,10 +40,11 @@ public final class NenolingModuleView {
                       boolean showResources, Actions actions) {
         LinearLayout root = column();
 
-        // Product identity belongs to the front page. Inner screens render their own contextual headings.
-        root.addView(centered(config.appName, 24, theme.primaryDark, true));
+        root.addView(centered(config.appName, 22, theme.primaryDark, true));
         if (!config.appIntro.isEmpty()) {
-            root.addView(centered(config.appIntro, 13, theme.muted, false), matchWrap(4));
+            TextView intro = centered(config.appIntro, 13, theme.muted, false);
+            intro.setPadding(dp(8), dp(4), dp(8), dp(6));
+            root.addView(intro);
         }
 
         root.addView(centered(config.ui.modulesTitle, 20, theme.primaryDark, true), matchWrap(10));
@@ -65,16 +71,35 @@ public final class NenolingModuleView {
     }
 
     private void addFooter(LinearLayout root) {
-        if (config.footerCredit != null && !config.footerCredit.trim().isEmpty()) {
-            root.addView(centered(config.footerCredit, 12, theme.muted, false), matchWrap(18));
+        if (has(config.footerCredit)) {
+            root.addView(centered(config.footerCredit, 11, theme.muted, false), matchWrap(18));
         }
-        if (config.footerLinkLabel != null && !config.footerLinkLabel.trim().isEmpty()) {
-            root.addView(centered(config.footerLinkLabel, 12, theme.primaryDark, false), matchWrap(2));
+        if (has(config.footerLinkLabel)) {
+            TextView link = centered(config.footerLinkLabel, 12, theme.primaryDark, false);
+            link.setPadding(0, dp(2), 0, 0);
+            link.setPaintFlags(link.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+            if (has(config.footerLinkUrl)) {
+                link.setClickable(true);
+                link.setFocusable(true);
+                link.setOnClickListener(v -> openExternalUrl(config.footerLinkUrl));
+            }
+            root.addView(link, matchWrap(2));
         }
-        // versionLinePattern is product supplied. The host can format version/date before constructing
-        // ShellConfig, keeping BuildConfig and release metadata outside the reusable shell module.
-        if (config.versionLinePattern != null && !config.versionLinePattern.trim().isEmpty()) {
-            root.addView(centered(config.versionLinePattern, 11, theme.muted, false), matchWrap(2));
+        // Product host supplies the already formatted version/date line, e.g. "Version 0.5.2 · 31.08.2026".
+        if (has(config.versionLinePattern)) {
+            TextView version = centered(config.versionLinePattern, 10, theme.muted, false);
+            version.setPadding(0, dp(3), 0, 0);
+            root.addView(version, matchWrap(2));
+        }
+    }
+
+    private void openExternalUrl(String url) {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        intent.addCategory(Intent.CATEGORY_BROWSABLE);
+        try {
+            context.startActivity(intent);
+        } catch (ActivityNotFoundException exception) {
+            Toast.makeText(context, "Link unavailable", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -124,6 +149,10 @@ public final class NenolingModuleView {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.topMargin = dp(top);
         return params;
+    }
+
+    private boolean has(String value) {
+        return value != null && !value.trim().isEmpty();
     }
 
     private int dp(int value) {
