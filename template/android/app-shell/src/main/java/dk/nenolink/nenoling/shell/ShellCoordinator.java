@@ -1,6 +1,7 @@
 package dk.nenolink.nenoling.shell;
 
 import android.content.Context;
+import android.widget.Toast;
 
 import java.util.Collections;
 import java.util.List;
@@ -189,21 +190,27 @@ public final class ShellCoordinator {
     private void finishQuiz() {
         String quizProgressId = progress.progressId(course.id, module.id, lesson.id, lesson.quiz.id);
         progress.saveQuizResult(quizProgressId, quizSession.score(), quizSession.totalQuestions());
-        state.screen = ShellState.Screen.QUIZ_RESULT;
+        state.quizResult();
         NenolingResultView result = new NenolingResultView(context, config, theme);
-        host.show(result.build(quizSession.score(), quizSession.totalQuestions(), this::renderLessonOverview));
+        host.show(result.build(quizSession.score(), quizSession.totalQuestions(), new NenolingResultView.Actions() {
+            @Override public void repeat() { openQuiz(); }
+            @Override public void back() { renderLessonOverview(); }
+        }));
     }
 
     private void renderResources(boolean returnToLesson) {
         resourcesReturnToLesson = returnToLesson;
-        state.screen = ShellState.Screen.RESOURCES;
+        state.resources();
         NenolingResourceView view = new NenolingResourceView(context, config, theme);
         host.show(view.build(resources, this::openExternalResource,
                 returnToLesson ? this::renderLessonOverview : this::start));
     }
 
     private void openExternalResource(ExternalResource resource) {
-        dk.nenolink.nenoling.ui.ExternalResourceLauncher.open(context, resource.url);
+        boolean opened = dk.nenolink.nenoling.ui.ExternalResourceLauncher.open(context, resource.url);
+        if (!opened && config.ui.linkUnavailable != null && !config.ui.linkUnavailable.trim().isEmpty()) {
+            Toast.makeText(context, config.ui.linkUnavailable, Toast.LENGTH_LONG).show();
+        }
     }
 
     private String lessonProgress(Lesson value) {

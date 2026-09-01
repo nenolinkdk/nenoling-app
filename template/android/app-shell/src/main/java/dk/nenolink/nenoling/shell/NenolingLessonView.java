@@ -17,7 +17,7 @@ import dk.nenolink.nenoling.content.ContentModels.Note;
 import dk.nenolink.nenoling.speech.SpeechController;
 import dk.nenolink.nenoling.ui.RoundNavBar;
 
-/** Compact reusable item view. Product supplies strings, colours and language data. */
+/** Compact reusable item view aligned with the approved FR-DA 0.5.2 item screen. */
 public final class NenolingLessonView {
     public interface Actions {
         void previous();
@@ -50,10 +50,6 @@ public final class NenolingLessonView {
                 supportLocale, targetLocale, actions);
     }
 
-    /**
-     * Builds one lesson item. On the final item, hasQuiz makes the transition to the
-     * lesson quiz explicit instead of relying only on the arrow's content description.
-     */
     public View build(Item item, int index, int total, boolean complete,
                       boolean previousEnabled, boolean hasQuiz,
                       String supportLocale, String targetLocale, Actions actions) {
@@ -71,31 +67,30 @@ public final class NenolingLessonView {
         root.addView(supportText, matchWrap(4));
 
         boolean finalItem = index + 1 >= total;
+        String nextDescription = finalItem
+                ? (hasQuiz ? config.ui.openQuiz : config.ui.back)
+                : config.ui.next;
         RoundNavBar nav = new RoundNavBar(context, theme.primary, theme.panel, theme.primaryDark, theme.muted);
-        nav.bind(previousEnabled, true, config.ui.previous,
-                finalItem && hasQuiz ? config.ui.openQuiz : config.ui.next,
+        nav.bind(previousEnabled, true, config.ui.previous, nextDescription,
                 new RoundNavBar.Actions() {
                     @Override public void onPrevious() { actions.previous(); }
                     @Override public void onNext() { actions.next(); }
                 });
         root.addView(nav, matchWrap(8));
 
-        if (finalItem && hasQuiz) {
-            Button quiz = button(config.ui.openQuiz, theme.accent, theme.onAccent);
-            quiz.setOnClickListener(v -> actions.next());
-            root.addView(quiz, matchWrap(8));
-        }
-
         LinearLayout tts = new LinearLayout(context);
+        tts.setOrientation(LinearLayout.HORIZONTAL);
         tts.setGravity(Gravity.CENTER);
-        Button supportButton = button(config.ui.listenSupport, theme.primary, theme.primaryDark);
+        Button supportButton = compactTtsButton(config.ui.listenSupport);
         supportButton.setOnClickListener(v -> speech.speak(item.text.support, supportLocale, speechListener));
-        Button targetButton = button(config.ui.listenTarget, theme.primary, theme.primaryDark);
+        Button targetButton = compactTtsButton(config.ui.listenTarget);
         targetButton.setOnClickListener(v -> speech.speak(item.text.target, targetLocale, speechListener));
-        tts.addView(supportButton);
+        LinearLayout.LayoutParams supportParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         LinearLayout.LayoutParams targetParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         targetParams.leftMargin = dp(8);
+        tts.addView(supportButton, supportParams);
         tts.addView(targetButton, targetParams);
         root.addView(tts, matchWrap(8));
 
@@ -143,15 +138,27 @@ public final class NenolingLessonView {
     private Button button(String label, int background, int textColor) {
         Button button = new Button(context);
         button.setText(label);
-        button.setTextSize(13);
+        button.setTextSize(14);
         button.setTextColor(textColor);
         button.setAllCaps(false);
         button.setGravity(Gravity.CENTER);
-        button.setMinHeight(dp(40));
-        button.setMinimumHeight(dp(40));
-        button.setPadding(dp(12), dp(6), dp(12), dp(6));
+        button.setMinHeight(dp(44));
+        button.setMinimumHeight(dp(44));
+        button.setPadding(dp(10), dp(6), dp(10), dp(6));
         button.setStateListAnimator(null);
         button.setBackground(panel(background));
+        return button;
+    }
+
+    private Button compactTtsButton(String label) {
+        Button button = button(label, theme.primary, theme.primaryDark);
+        button.setTextSize(13);
+        button.setMinHeight(dp(40));
+        button.setMinimumHeight(dp(40));
+        button.setMinWidth(0);
+        button.setMinimumWidth(0);
+        button.setSingleLine(true);
+        button.setPadding(dp(12), dp(6), dp(12), dp(6));
         return button;
     }
 
