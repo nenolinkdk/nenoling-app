@@ -14,7 +14,7 @@ import java.util.List;
 
 import dk.nenolink.nenoling.content.ContentModels.Module;
 
-/** Reusable home/module renderer with no language-pair-specific strings. */
+/** Reusable front-page/module renderer aligned with the approved FR-DA 0.5.2 product shell. */
 public final class NenolingModuleView {
     public interface Actions {
         void open(Module module);
@@ -34,8 +34,17 @@ public final class NenolingModuleView {
     public View build(List<Module> modules, ModuleProgressProvider progress,
                       boolean showResources, Actions actions) {
         LinearLayout root = column();
-        root.addView(centered(config.ui.modulesTitle, 20, theme.primaryDark, true));
-        root.addView(centered(config.ui.modulesIntro, 14, theme.muted, false), matchWrap(4));
+
+        // Product identity belongs to the front page. Inner screens render their own contextual headings.
+        root.addView(centered(config.appName, 24, theme.primaryDark, true));
+        if (!config.appIntro.isEmpty()) {
+            root.addView(centered(config.appIntro, 13, theme.muted, false), matchWrap(4));
+        }
+
+        root.addView(centered(config.ui.modulesTitle, 20, theme.primaryDark, true), matchWrap(10));
+        if (config.ui.modulesIntro != null && !config.ui.modulesIntro.trim().isEmpty()) {
+            root.addView(centered(config.ui.modulesIntro, 14, theme.muted, false), matchWrap(4));
+        }
 
         for (Module module : ModuleOrder.ordered(modules)) {
             String suffix = progress == null ? "" : progress.progress(module);
@@ -50,7 +59,23 @@ public final class NenolingModuleView {
             resources.setOnClickListener(v -> actions.openResources());
             root.addView(resources, matchWrap(8));
         }
+
+        addFooter(root);
         return root;
+    }
+
+    private void addFooter(LinearLayout root) {
+        if (config.footerCredit != null && !config.footerCredit.trim().isEmpty()) {
+            root.addView(centered(config.footerCredit, 12, theme.muted, false), matchWrap(18));
+        }
+        if (config.footerLinkLabel != null && !config.footerLinkLabel.trim().isEmpty()) {
+            root.addView(centered(config.footerLinkLabel, 12, theme.primaryDark, false), matchWrap(2));
+        }
+        // versionLinePattern is product supplied. The host can format version/date before constructing
+        // ShellConfig, keeping BuildConfig and release metadata outside the reusable shell module.
+        if (config.versionLinePattern != null && !config.versionLinePattern.trim().isEmpty()) {
+            root.addView(centered(config.versionLinePattern, 11, theme.muted, false), matchWrap(2));
+        }
     }
 
     public interface ModuleProgressProvider {
